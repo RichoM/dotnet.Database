@@ -22,7 +22,7 @@ namespace RichoM.Data
             return this;
         }
 
-        public T Execute<T>(Func<DbDataReader, T> function)
+        internal T Execute<T>(Func<DbDataReader, T> function)
         {
             return db.ExecuteQuery(this, function);
         }
