@@ -19,8 +19,8 @@ namespace RichoM.Data
             parameters = new Dictionary<string, Tuple<object, DbType?>>();
         }
 
-        public string Sql { get { return sql; } }
-        public Dictionary<string, Tuple<object, DbType?>> Parameters { get { return parameters; } }
+        internal string Sql { get { return sql; } }
+        internal Dictionary<string, Tuple<object, DbType?>> Parameters { get { return parameters; } }
 
         protected void AddParameter(string name, object value, DbType? type)
         {
