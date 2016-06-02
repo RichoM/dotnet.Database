@@ -8,40 +8,38 @@ using System.Threading.Tasks;
 
 namespace RichoM.Data
 {
-    public class Database
+    public class Database<TConnection> where TConnection : DbConnection, new()
     {
         private string connectionString;
-        private Func<DbConnection> connectionCreator;
 
-        public Database(string connectionString, Func<DbConnection> connectionCreator)
+        public Database(string connectionString)
         {
             this.connectionString = connectionString;
-            this.connectionCreator = connectionCreator;
         }
         
-        public DatabaseQuery Query(string sql)
+        public DatabaseQuery<TConnection> Query(string sql)
         {
-            return new DatabaseQuery(this, sql);
+            return new DatabaseQuery<TConnection>(this, sql);
         }
 
-        public DatabaseModification Modification(string sql)
+        public DatabaseModification<TConnection> Modification(string sql)
         {
-            return new DatabaseModification(this, sql);
+            return new DatabaseModification<TConnection>(this, sql);
         }
 
-        public DatabaseModification Insert(string sql)
+        public DatabaseModification<TConnection> Insert(string sql)
         {
-            return new DatabaseModification(this, sql);
+            return new DatabaseModification<TConnection>(this, sql);
         }
 
-        public DatabaseModification Update(string sql)
+        public DatabaseModification<TConnection> Update(string sql)
         {
-            return new DatabaseModification(this, sql);
+            return new DatabaseModification<TConnection>(this, sql);
         }
 
-        public T ConnectionDo<T>(Func<DbConnection, T> function)
+        public T ConnectionDo<T>(Func<TConnection, T> function)
         {
-            using (DbConnection conn = connectionCreator())
+            using (TConnection conn = new TConnection())
             {
                 conn.ConnectionString = connectionString;
                 conn.Open();
@@ -49,12 +47,22 @@ namespace RichoM.Data
             }
         }
 
-        public T CommandDo<T>(Func<DbCommand, T> function)
+        public void ConnectionDo(Action<TConnection> action)
+        {
+            using (TConnection conn = new TConnection())
+            {
+                conn.ConnectionString = connectionString;
+                conn.Open();
+                action(conn);
+            }
+        }
+
+        internal T CommandDo<T>(Func<DbCommand, T> function)
         {
             return ConnectionDo((conn) => function(conn.CreateCommand()));
         }
 
-        internal T ExecuteQuery<T>(DatabaseQuery query, Func<DbDataReader, T> function)
+        internal T ExecuteQuery<T>(DatabaseQuery<TConnection> query, Func<DbDataReader, T> function)
         {
             return CommandDo((cmd) =>
             {
@@ -66,7 +74,7 @@ namespace RichoM.Data
             });
         }
 
-        internal int ExecuteModification(DatabaseModification modification)
+        internal int ExecuteModification(DatabaseModification<TConnection> modification)
         {
             return CommandDo((cmd) =>
             {

@@ -7,16 +7,16 @@ using System.Threading.Tasks;
 
 namespace RichoM.Data
 {
-    public class DatabaseQuery : DatabaseCommand
+    public class DatabaseQuery<TConnection> : DatabaseCommand where TConnection : DbConnection, new()
     {
-        private Database db;
+        private Database<TConnection> db;
         
-        internal DatabaseQuery(Database db, string sql) : base(sql)
+        internal DatabaseQuery(Database<TConnection> db, string sql) : base(sql)
         {
             this.db = db;
         }        
 
-        public DatabaseQuery WithParameter(string name, object value)
+        public DatabaseQuery<TConnection> WithParameter(string name, object value)
         {
             AddParameter(name, value, null);
             return this;

@@ -9,12 +9,12 @@ namespace DatabaseTest
     [TestClass]
     public class DBTest
     {
-        private Database db;
+        private Database<SqlCeConnection> db;
 
         [TestInitialize]
         public void Setup()
         {
-            db = new Database(@"Data Source=db.sdf", () => new SqlCeConnection());
+            db = new Database<SqlCeConnection>(@"Data Source=db.sdf");
             try { db.Modification("DROP TABLE [Test]").Execute(); }
             catch (SqlCeException) { /* The table might not exist. Do nothing */ }
             db.Modification("CREATE TABLE [Test] (" + 
