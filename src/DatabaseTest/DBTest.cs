@@ -78,7 +78,7 @@ namespace DatabaseTest
             PerformInsert(id, "Richo", DateTime.Now, 42);
 
             int rows = db
-                .Update("UPDATE Test SET name = @name, number = @number" +
+                .Modification("UPDATE Test SET name = @name, number = @number" +
                     " WHERE id = @id")
                 .WithParameter("@name", "Ocho")
                 .WithParameter("@number", 22)

@@ -27,16 +27,6 @@ namespace RichoM.Data
             return new DatabaseModification<TConnection>(this, sql);
         }
 
-        public DatabaseModification<TConnection> Insert(string sql)
-        {
-            return new DatabaseModification<TConnection>(this, sql);
-        }
-
-        public DatabaseModification<TConnection> Update(string sql)
-        {
-            return new DatabaseModification<TConnection>(this, sql);
-        }
-
         public T ConnectionDo<T>(Func<TConnection, T> function)
         {
             using (TConnection conn = new TConnection())
