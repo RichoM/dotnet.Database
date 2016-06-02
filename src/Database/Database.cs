@@ -47,7 +47,7 @@ namespace RichoM.Data
             }
         }
 
-        internal T CommandDo<T>(Func<DbCommand, T> function)
+        private T CommandDo<T>(Func<DbCommand, T> function)
         {
             return ConnectionDo((conn) => function(conn.CreateCommand()));
         }
