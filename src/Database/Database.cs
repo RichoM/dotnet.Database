@@ -24,6 +24,11 @@ namespace RichoM.Data
             return new DatabaseQuery(this, sql);
         }
 
+        public DatabaseModification Modification(string sql)
+        {
+            return new DatabaseModification(this, sql);
+        }
+
         public DatabaseModification Insert(string sql)
         {
             return new DatabaseModification(this, sql);
