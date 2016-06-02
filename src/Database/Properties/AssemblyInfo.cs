@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Database")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("RichoM.Database")]
+[assembly: AssemblyDescription("Yet another fluent interface for database queries. https://github.com/RichoM/dotnet.Database")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Database")]
+[assembly: AssemblyCompany("Ricardo Moran")]
+[assembly: AssemblyProduct("RichoM.Database")]
 [assembly: AssemblyCopyright("Copyright ©  2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
