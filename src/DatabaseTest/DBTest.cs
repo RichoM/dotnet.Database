@@ -5,6 +5,7 @@ using RichoM.Data;
 using System.Data;
 using System.Data.SqlServerCe;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DatabaseTest
 {
@@ -108,14 +109,26 @@ namespace DatabaseTest
             Assert.AreEqual("Juan", name);
         }
 
-        private int PerformInsert(Guid id, string name, DateTime now, int number)
+        [TestMethod]
+        public void TestAccessingFieldsByUsingNamesInsteadOfOrdinals()
+        {
+            string[] expected = new string[] { "Ricardo", "Diego", "Sofía" };
+            foreach (string name in expected) { PerformInsert(Guid.NewGuid(), name); }
+
+            IEnumerable<string> names = db.Query("SELECT name FROM Test ORDER BY name ASC")
+                .Select(row => row.GetString("name"));
+
+            Assert.IsTrue(expected.OrderBy(each => each).SequenceEqual(names));
+        }
+
+        private int PerformInsert(Guid id, string name = null, DateTime? now = null, int? number = null)
         {
             return db.NonQuery("INSERT INTO Test (id, name, datetime, number)" +
                 " VALUES (@id, @name, @datetime, @number)")
                 .WithParameter("@id", id)
                 .WithParameter("@name", name)
-                .WithParameter("@datetime", now)
-                .WithParameter("@number", number)
+                .WithParameter("@datetime", now.HasValue ? (object)now.Value : DBNull.Value)
+                .WithParameter("@number", number.HasValue ? (object)number.Value : DBNull.Value)
                 .Execute();
         }
     }
