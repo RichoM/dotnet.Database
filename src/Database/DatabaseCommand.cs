@@ -34,7 +34,7 @@ namespace RichoM.Data
             foreach (KeyValuePair<string, Tuple<object, DbType?>> kvp in parameters)
             {
                 string name = kvp.Key;
-                object value = kvp.Value.Item1;
+                object value = kvp.Value.Item1 ?? DBNull.Value;
                 DbType? type = kvp.Value.Item2;
                 DbParameter param = cmd.CreateParameter();
                 if (type.HasValue) { param.DbType = type.Value; }

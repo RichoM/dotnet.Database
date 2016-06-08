@@ -127,8 +127,8 @@ namespace DatabaseTest
                 " VALUES (@id, @name, @datetime, @number)")
                 .WithParameter("@id", id)
                 .WithParameter("@name", name)
-                .WithParameter("@datetime", now.HasValue ? (object)now.Value : DBNull.Value)
-                .WithParameter("@number", number.HasValue ? (object)number.Value : DBNull.Value)
+                .WithParameter("@datetime", now.HasValue ? (object)now.Value : null)
+                .WithParameter("@number", number.HasValue ? (object)number.Value : null)
                 .Execute();
         }
     }
