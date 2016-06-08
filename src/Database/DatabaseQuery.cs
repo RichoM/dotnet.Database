@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
@@ -19,6 +20,12 @@ namespace RichoM.Data
         public DatabaseQuery<TConnection> WithParameter(string name, object value)
         {
             AddParameter(name, value, null);
+            return this;
+        }
+
+        public DatabaseQuery<TConnection> WithParameter(string name, object value, DbType type)
+        {
+            AddParameter(name, value, type);
             return this;
         }
 
