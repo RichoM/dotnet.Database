@@ -15,15 +15,9 @@ namespace RichoM.Data
         internal DatabaseQuery(Database<TConnection> db, string sql) : base(sql)
         {
             this.db = db;
-        }        
-
-        public DatabaseQuery<TConnection> WithParameter(string name, object value)
-        {
-            AddParameter(name, value, null);
-            return this;
         }
 
-        public DatabaseQuery<TConnection> WithParameter(string name, object value, DbType type)
+        public DatabaseQuery<TConnection> WithParameter(string name, object value, DbType? type = null)
         {
             AddParameter(name, value, type);
             return this;

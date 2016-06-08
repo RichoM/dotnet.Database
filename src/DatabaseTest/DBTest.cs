@@ -1,6 +1,8 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using RichoM.Data;
+using System.Data;
 using System.Data.SqlServerCe;
 using System.Collections.Generic;
 
@@ -19,9 +21,9 @@ namespace DatabaseTest
             catch (SqlCeException) { /* The table might not exist. Do nothing */ }
             db.NonQuery("CREATE TABLE [Test] (" + 
                 " [id] uniqueidentifier NOT NULL," + 
-                " [name] nvarchar(100) NOT NULL," + 
-                " [datetime] datetime NOT NULL," + 
-                " [number] int NOT NULL)")
+                " [name] nvarchar(100) NULL," + 
+                " [datetime] datetime NULL," + 
+                " [number] int NULL)")
                 .Execute();
             db.NonQuery("ALTER TABLE [Test]" +
                 " ADD CONSTRAINT [PK_Test] PRIMARY KEY ([id])")
@@ -91,6 +93,19 @@ namespace DatabaseTest
                 .First(r => new Tuple<string, int>(r.GetString(0), r.GetInt32(1)));
             Assert.AreEqual("Ocho", row.Item1);
             Assert.AreEqual(22, row.Item2);
+        }
+
+        [TestMethod]
+        public void TestCommandParametersWithExplicitDbTypes()
+        {
+            int rows = db.NonQuery("INSERT INTO Test (id, name) VALUES (@id, @name)")
+                .WithParameter("@id", Guid.NewGuid(), DbType.Guid)
+                .WithParameter("@name", "Juan", DbType.String)
+                .Execute();
+
+            Assert.AreEqual(1, rows);
+            string name = db.Query("SELECT name FROM Test").First(row => row.GetString(0));
+            Assert.AreEqual("Juan", name);
         }
 
         private int PerformInsert(Guid id, string name, DateTime now, int number)
