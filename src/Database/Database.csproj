@@ -42,7 +42,7 @@
   <ItemGroup>
     <Compile Include="Database.cs" />
     <Compile Include="DatabaseCommand.cs" />
-    <Compile Include="DatabaseModification.cs" />
+    <Compile Include="DatabaseNonQuery.cs" />
     <Compile Include="DatabaseQuery.cs" />
     <Compile Include="DatabaseRow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

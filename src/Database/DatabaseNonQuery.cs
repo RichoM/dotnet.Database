@@ -8,22 +8,22 @@ using System.Threading.Tasks;
 
 namespace RichoM.Data
 {
-    public class DatabaseModification<TConnection> : DatabaseCommand where TConnection : DbConnection, new()
+    public class DatabaseNonQuery<TConnection> : DatabaseCommand where TConnection : DbConnection, new()
     {
         private Database<TConnection> db;
 
-        internal DatabaseModification(Database<TConnection> db, string sql) : base(sql)
+        internal DatabaseNonQuery(Database<TConnection> db, string sql) : base(sql)
         {
             this.db = db;
         }
 
-        public DatabaseModification<TConnection> WithParameter(string name, object value)
+        public DatabaseNonQuery<TConnection> WithParameter(string name, object value)
         {
             AddParameter(name, value, null);
             return this;
         }
 
-        public DatabaseModification<TConnection> WithParameter(string name, object value, DbType type)
+        public DatabaseNonQuery<TConnection> WithParameter(string name, object value, DbType type)
         {
             AddParameter(name, value, type);
             return this;

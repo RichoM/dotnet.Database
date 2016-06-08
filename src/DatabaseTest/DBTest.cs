@@ -15,15 +15,15 @@ namespace DatabaseTest
         public void Setup()
         {
             db = new Database<SqlCeConnection>(@"Data Source=db.sdf");
-            try { db.Modification("DROP TABLE [Test]").Execute(); }
+            try { db.NonQuery("DROP TABLE [Test]").Execute(); }
             catch (SqlCeException) { /* The table might not exist. Do nothing */ }
-            db.Modification("CREATE TABLE [Test] (" + 
+            db.NonQuery("CREATE TABLE [Test] (" + 
                 " [id] uniqueidentifier NOT NULL," + 
                 " [name] nvarchar(100) NOT NULL," + 
                 " [datetime] datetime NOT NULL," + 
                 " [number] int NOT NULL)")
                 .Execute();
-            db.Modification("ALTER TABLE [Test]" +
+            db.NonQuery("ALTER TABLE [Test]" +
                 " ADD CONSTRAINT [PK_Test] PRIMARY KEY ([id])")
                 .Execute();
         }
@@ -78,7 +78,7 @@ namespace DatabaseTest
             PerformInsert(id, "Richo", DateTime.Now, 42);
 
             int rows = db
-                .Modification("UPDATE Test SET name = @name, number = @number" +
+                .NonQuery("UPDATE Test SET name = @name, number = @number" +
                     " WHERE id = @id")
                 .WithParameter("@name", "Ocho")
                 .WithParameter("@number", 22)
@@ -95,7 +95,7 @@ namespace DatabaseTest
 
         private int PerformInsert(Guid id, string name, DateTime now, int number)
         {
-            return db.Modification("INSERT INTO Test (id, name, datetime, number)" +
+            return db.NonQuery("INSERT INTO Test (id, name, datetime, number)" +
                 " VALUES (@id, @name, @datetime, @number)")
                 .WithParameter("@id", id)
                 .WithParameter("@name", name)

@@ -22,9 +22,9 @@ namespace RichoM.Data
             return new DatabaseQuery<TConnection>(this, sql);
         }
 
-        public DatabaseModification<TConnection> Modification(string sql)
+        public DatabaseNonQuery<TConnection> NonQuery(string sql)
         {
-            return new DatabaseModification<TConnection>(this, sql);
+            return new DatabaseNonQuery<TConnection>(this, sql);
         }
 
         public T ConnectionDo<T>(Func<TConnection, T> function)
@@ -64,7 +64,7 @@ namespace RichoM.Data
             });
         }
 
-        internal int ExecuteModification(DatabaseModification<TConnection> modification)
+        internal int ExecuteModification(DatabaseNonQuery<TConnection> modification)
         {
             return CommandDo((cmd) =>
             {
