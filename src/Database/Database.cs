@@ -27,7 +27,7 @@ namespace RichoM.Data
                     action(new DatabaseTransaction<TConnection>(conn, transaction));
                     transaction.Commit();
                 }
-                catch (DbException)
+                catch (Exception)
                 {
                     transaction.Rollback();
                     throw;
