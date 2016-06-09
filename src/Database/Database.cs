@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace RichoM.Data
 {
-    public class Database<TConnection> where TConnection : DbConnection, new()
+    public class Database<TConnection> : DatabaseContext<TConnection> where TConnection : DbConnection, new()
     {
         private string connectionString;
 
@@ -17,14 +17,22 @@ namespace RichoM.Data
             this.connectionString = connectionString;
         }
         
-        public DatabaseQuery<TConnection> Query(string sql)
+        public void TransactionDo(Action<DatabaseTransaction<TConnection>> action)
         {
-            return new DatabaseQuery<TConnection>(this, sql);
-        }
-
-        public DatabaseNonQuery<TConnection> NonQuery(string sql)
-        {
-            return new DatabaseNonQuery<TConnection>(this, sql);
+            ConnectionDo(conn =>
+            {
+                DbTransaction transaction = conn.BeginTransaction();
+                try
+                {
+                    action(new DatabaseTransaction<TConnection>(conn, transaction));
+                    transaction.Commit();
+                }
+                catch (DbException)
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            });
         }
 
         public T ConnectionDo<T>(Func<TConnection, T> function)
@@ -47,30 +55,9 @@ namespace RichoM.Data
             }
         }
 
-        private T CommandDo<T>(Func<DbCommand, T> function)
+        internal override T CommandDo<T>(Func<DbCommand, T> function)
         {
             return ConnectionDo((conn) => function(conn.CreateCommand()));
-        }
-
-        internal T ExecuteQuery<T>(DatabaseQuery<TConnection> query, Func<DbDataReader, T> function)
-        {
-            return CommandDo((cmd) =>
-            {
-                query.ConfigureOn(cmd);
-                using (DbDataReader reader = cmd.ExecuteReader())
-                {
-                    return function(reader);
-                }
-            });
-        }
-
-        internal int ExecuteModification(DatabaseNonQuery<TConnection> modification)
-        {
-            return CommandDo((cmd) =>
-            {
-                modification.ConfigureOn(cmd);
-                return cmd.ExecuteNonQuery();
-            });
         }
     }
 }

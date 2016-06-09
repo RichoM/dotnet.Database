@@ -10,11 +10,11 @@ namespace RichoM.Data
 {
     public class DatabaseQuery<TConnection> : DatabaseCommand where TConnection : DbConnection, new()
     {
-        private Database<TConnection> db;
+        private DatabaseContext<TConnection> context;
         
-        internal DatabaseQuery(Database<TConnection> db, string sql) : base(sql)
+        internal DatabaseQuery(DatabaseContext<TConnection> context, string sql) : base(sql)
         {
-            this.db = db;
+            this.context = context;
         }
 
         public DatabaseQuery<TConnection> WithParameter(string name, object value, DbType? type = null)
@@ -25,7 +25,7 @@ namespace RichoM.Data
 
         internal T Execute<T>(Func<DbDataReader, T> function)
         {
-            return db.ExecuteQuery(this, function);
+            return context.ExecuteQuery(this, function);
         }
 
         public void ForEach(Action<DatabaseRow> action)

@@ -121,6 +121,47 @@ namespace DatabaseTest
             Assert.IsTrue(expected.OrderBy(each => each).SequenceEqual(names));
         }
 
+        [TestMethod]
+        public void TestTransactions()
+        {
+            bool exceptionThrown = false; // flag to test if the exception is thrown
+            try
+            {
+                db.TransactionDo(transaction =>
+                {
+                    Guid id = Guid.NewGuid();
+                    int rows = transaction
+                        .NonQuery("INSERT INTO Test (id) VALUES (@id)")
+                        .WithParameter("@id", id)
+                        .Execute();
+
+                    // The table now contains one row
+                    Assert.AreEqual(1, rows);
+                    Assert.AreEqual(1, transaction.Query("SELECT count(*) FROM Test").First(row => row.GetInt32(0)));
+                    // But the database still thinks it's empty because the transaction has
+                    // not been committed yet
+                    Assert.AreEqual(0, db.Query("SELECT count(*) FROM Test").First(row => row.GetInt32(0)));
+
+                    // Duplicate id, should fail
+                    transaction
+                        .NonQuery("INSERT INTO Test (id) VALUES (@id)")
+                        .WithParameter("@id", id)
+                        .Execute();
+
+                    Assert.Fail("Execution shouldn't reach here");
+                });
+                Assert.Fail("Execution shouldn't reach here either");
+            }
+            catch (Exception ex)
+            {
+                Assert.IsInstanceOfType(ex, typeof(SqlCeException));
+                exceptionThrown = true;
+            }
+            Assert.IsTrue(exceptionThrown, "The exception has not been thrown");
+            // The table should be empty now
+            Assert.AreEqual(0, db.Query("SELECT count(*) FROM Test").First(row => row.GetInt32(0)));
+        }
+
         private int PerformInsert(Guid id, string name = null, DateTime? now = null, int? number = null)
         {
             return db.NonQuery("INSERT INTO Test (id, name, datetime, number)" +

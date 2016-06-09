@@ -10,11 +10,11 @@ namespace RichoM.Data
 {
     public class DatabaseNonQuery<TConnection> : DatabaseCommand where TConnection : DbConnection, new()
     {
-        private Database<TConnection> db;
+        private DatabaseContext<TConnection> context;
 
-        internal DatabaseNonQuery(Database<TConnection> db, string sql) : base(sql)
+        internal DatabaseNonQuery(DatabaseContext<TConnection> context, string sql) : base(sql)
         {
-            this.db = db;
+            this.context = context;
         }
         
         public DatabaseNonQuery<TConnection> WithParameter(string name, object value, DbType? type = null)
@@ -25,7 +25,7 @@ namespace RichoM.Data
 
         public int Execute()
         {
-            return db.ExecuteModification(this);
+            return context.ExecuteModification(this);
         }
     }
 }
