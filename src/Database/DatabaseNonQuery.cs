@@ -25,7 +25,7 @@ namespace RichoM.Data
 
         public int Execute()
         {
-            return context.ExecuteModification(this);
+            return context.ExecuteNonQuery(this);
         }
     }
 }

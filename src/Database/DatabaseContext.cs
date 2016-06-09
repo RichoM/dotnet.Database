@@ -34,7 +34,7 @@ namespace RichoM.Data
             });
         }
 
-        internal int ExecuteModification(DatabaseNonQuery<TConnection> modification)
+        internal int ExecuteNonQuery(DatabaseNonQuery<TConnection> modification)
         {
             return CommandDo((cmd) =>
             {
