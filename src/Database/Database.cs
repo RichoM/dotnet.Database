@@ -17,25 +17,12 @@ namespace RichoM.Data
             this.connectionString = connectionString;
         }
         
-        public void TransactionDo(Action<DatabaseTransaction<TConnection>> action)
+        public void TransactionDo(Action<DatabaseTransaction<TConnection>> action, IsolationLevel? isolationLevel = null)
         {
             ConnectionDo(conn =>
             {
-                DbTransaction transaction = conn.BeginTransaction();
-                try
-                {
-                    action(new DatabaseTransaction<TConnection>(conn, transaction));
-                    transaction.Commit();
-                }
-                catch (Exception)
-                {
-                    transaction.Rollback();
-                    throw;
-                }
-                finally
-                {
-                    transaction.Dispose();
-                }
+                DatabaseTransaction<TConnection> transaction = new DatabaseTransaction<TConnection>(conn, isolationLevel);
+                transaction.Do(action);
             });
         }
 

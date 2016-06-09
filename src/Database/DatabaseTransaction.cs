@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using System.Data;
 using System.Data.Common;
 
 namespace RichoM.Data
@@ -13,10 +14,18 @@ namespace RichoM.Data
         private TConnection connection;
         private DbTransaction transaction;
 
-        internal DatabaseTransaction(TConnection connection, DbTransaction transaction)
+        internal DatabaseTransaction(TConnection connection, IsolationLevel? isolationLevel)
         {
             this.connection = connection;
-            this.transaction = transaction;
+
+            if (isolationLevel.HasValue)
+            {
+                transaction = connection.BeginTransaction(isolationLevel.Value);
+            }
+            else
+            {
+                transaction = connection.BeginTransaction();
+            }
         }
 
         public TConnection Connection { get { return connection; } }
@@ -28,6 +37,24 @@ namespace RichoM.Data
                 cmd.Transaction = transaction;
                 return function(cmd);
             }            
+        }
+
+        internal void Do(Action<DatabaseTransaction<TConnection>> action)
+        {
+            try
+            {
+                action(this);
+                transaction.Commit();
+            }
+            catch (Exception)
+            {
+                transaction.Rollback();
+                throw;
+            }
+            finally
+            {
+                transaction.Dispose();
+            }
         }
     }
 }
