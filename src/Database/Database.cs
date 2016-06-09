@@ -32,6 +32,10 @@ namespace RichoM.Data
                     transaction.Rollback();
                     throw;
                 }
+                finally
+                {
+                    transaction.Dispose();
+                }
             });
         }
 
@@ -57,7 +61,13 @@ namespace RichoM.Data
 
         internal override T CommandDo<T>(Func<DbCommand, T> function)
         {
-            return ConnectionDo((conn) => function(conn.CreateCommand()));
+            return ConnectionDo((conn) =>
+            {
+                using (DbCommand cmd = conn.CreateCommand())
+                {
+                    return function(cmd);
+                }
+            });
         }
     }
 }
