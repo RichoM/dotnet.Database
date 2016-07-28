@@ -12,7 +12,7 @@ namespace RichoM.Data
     {
         private DatabaseContext<TConnection> context;
 
-        internal DatabaseNonQuery(DatabaseContext<TConnection> context, string sql) : base(sql)
+        internal DatabaseNonQuery(DatabaseContext<TConnection> context, string commandText) : base(commandText)
         {
             this.context = context;
         }

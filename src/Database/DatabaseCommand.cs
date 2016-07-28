@@ -10,16 +10,16 @@ namespace RichoM.Data
 {
     public abstract class DatabaseCommand
     {
-        private string sql;
+        private string commandText;
         private Dictionary<string, Tuple<object, DbType?>> parameters;
 
-        protected DatabaseCommand(string sql)
+        protected DatabaseCommand(string commandText)
         {
-            this.sql = sql;
+            this.commandText = commandText;
             parameters = new Dictionary<string, Tuple<object, DbType?>>();
         }
 
-        internal string Sql { get { return sql; } }
+        internal string CommandText { get { return commandText; } }
         internal Dictionary<string, Tuple<object, DbType?>> Parameters { get { return parameters; } }
 
         protected void AddParameter(string name, object value, DbType? type)
@@ -29,7 +29,7 @@ namespace RichoM.Data
 
         internal void ConfigureOn(DbCommand cmd)
         {
-            cmd.CommandText = sql;
+            cmd.CommandText = commandText;
 
             foreach (KeyValuePair<string, Tuple<object, DbType?>> kvp in parameters)
             {
