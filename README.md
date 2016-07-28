@@ -1,4 +1,5 @@
 # dotnet.Database
+[![richom MyGet Build Status](https://www.myget.org/BuildSource/Badge/richom?identifier=64149d8e-6831-4025-ab35-5a6d5a196047)](https://www.myget.org/)
 
 This is just a thin wrapper around ADO.NET.
 
