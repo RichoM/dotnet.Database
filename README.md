@@ -2,13 +2,13 @@
 
 This is just a thin wrapper around ADO.NET.
 
-To start you just have to create a Database object by specifying the connection string and the type of DbConnection you want to use. In this case, we will use the System.Data.SqlClient namespace so we specify the SqlConnection class:
+To start we have to create a *Database* object by specifying the connection string and the type of *DbConnection* we want to use. In this case, we will use the *System.Data.SqlClient* namespace so we specify the *SqlConnection* class:
 
 ```c#
 Database<SqlConnection> db = new Database<SqlConnection>("your connection string");
 ```
 
-Then, we can use the Database instance to perform queries:
+Then, we can use the *Database* instance to perform queries:
 
 ```c#
 var rows = db
@@ -21,7 +21,7 @@ var rows = db
 	});
 ```
 
-If the query only returns one element, we can access it using the First(..) method instead of Select(..):
+If the query only returns one element, we can access it using the *First(..)* method instead of *Select(..)*:
 
 ```c#
 int count = db
@@ -29,7 +29,7 @@ int count = db
 	.First(row => row.GetInt32(0));
 ```
 	
-If we are only interested in iterating over the results, we can use the ForEach(..) method:
+If we are only interested in iterating over the results, we can use the *ForEach(..)* method:
 
 ```c#
 db
@@ -40,7 +40,7 @@ db
 	});
 ```
 	
-If our query has parameters, we can supply arguments by using the WithParameter(..) method:
+If our query has parameters, we can supply arguments by using the *WithParameter(..)* method:
 
 ```c#
 IEnumerable<Guid> ids = db
@@ -49,7 +49,7 @@ IEnumerable<Guid> ids = db
 	.Select(row => row.GetGuid(0));
 ```
 
-We can also use the Database instance to perform inserts, updates, or deletes:
+We can also use the *Database* instance to perform inserts, updates, or deletes:
 
 ```c#
 db
