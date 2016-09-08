@@ -16,7 +16,8 @@ namespace RichoM.Data
     {
         private DatabaseContext<TConnection> context;
         
-        internal DatabaseQuery(DatabaseContext<TConnection> context, string commandText) : base(commandText)
+        internal DatabaseQuery(DatabaseContext<TConnection> context, string commandText, bool storedProcedure) 
+            : base(commandText, storedProcedure)
         {
             this.context = context;
         }

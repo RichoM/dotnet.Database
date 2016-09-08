@@ -17,7 +17,8 @@ namespace RichoM.Data
     {
         private DatabaseContext<TConnection> context;
 
-        internal DatabaseNonQuery(DatabaseContext<TConnection> context, string commandText) : base(commandText)
+        internal DatabaseNonQuery(DatabaseContext<TConnection> context, string commandText, bool storedProcedure) 
+            : base(commandText, storedProcedure)
         {
             this.context = context;
         }

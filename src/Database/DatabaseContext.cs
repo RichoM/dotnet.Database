@@ -17,9 +17,9 @@ namespace RichoM.Data
         /// </summary>
         /// <param name="commandText">The command text used to configure the query</param>
         /// <returns>The newly created <c>DatabaseQuery</c></returns>
-        public DatabaseQuery<TConnection> Query(string commandText)
+        public DatabaseQuery<TConnection> Query(string commandText, bool storedProcedure = false)
         {
-            return new DatabaseQuery<TConnection>(this, commandText);
+            return new DatabaseQuery<TConnection>(this, commandText, storedProcedure);
         }
 
         /// <summary>
@@ -27,9 +27,9 @@ namespace RichoM.Data
         /// </summary>
         /// <param name="commandText">The command text used to configure the command</param>
         /// <returns>The newly created <c>DatabaseNonQuery</c></returns>
-        public DatabaseNonQuery<TConnection> NonQuery(string commandText)
+        public DatabaseNonQuery<TConnection> NonQuery(string commandText, bool storedProcedure = false)
         {
-            return new DatabaseNonQuery<TConnection>(this, commandText);
+            return new DatabaseNonQuery<TConnection>(this, commandText, storedProcedure);
         }
         
         internal T ExecuteQuery<T>(DatabaseQuery<TConnection> query, Func<DbDataReader, T> function)

@@ -11,11 +11,13 @@ namespace RichoM.Data
     public abstract class DatabaseCommand
     {
         private string commandText;
+        private bool storedProcedure;
         private Dictionary<string, Tuple<object, DbType?>> parameters;
 
-        protected DatabaseCommand(string commandText)
+        protected DatabaseCommand(string commandText, bool storedProcedure)
         {
             this.commandText = commandText;
+            this.storedProcedure = storedProcedure;
             parameters = new Dictionary<string, Tuple<object, DbType?>>();
         }
 
@@ -30,6 +32,7 @@ namespace RichoM.Data
         internal void ConfigureOn(DbCommand cmd)
         {
             cmd.CommandText = commandText;
+            cmd.CommandType = storedProcedure ? CommandType.StoredProcedure : CommandType.Text;
 
             foreach (KeyValuePair<string, Tuple<object, DbType?>> kvp in parameters)
             {
