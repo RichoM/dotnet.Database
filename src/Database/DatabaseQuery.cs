@@ -34,19 +34,14 @@ namespace RichoM.Data
             AddParameter(name, value, type);
             return this;
         }
-
-        internal T Execute<T>(Func<DbDataReader, T> function)
-        {
-            return context.ExecuteQuery(this, function);
-        }
-
+        
         /// <summary>
         /// Executes the query and lets you iterate over its results.
         /// </summary>
         /// <param name="action">The action to be performed for each database row</param>
         public void ForEach(Action<DatabaseRow> action)
         {
-            Execute((reader) =>
+            context.ExecuteQuery(this, (reader) =>
             {
                 DatabaseRow row = new DatabaseRow(reader);
                 while (reader.Read())
@@ -66,7 +61,7 @@ namespace RichoM.Data
         /// <returns>The results after evaluating the <paramref name="function"/> for each row.</returns>
         public List<T> Select<T>(Func<DatabaseRow, T> function)
         {
-            return Execute((reader) =>
+            return context.ExecuteQuery(this, (reader) =>
             {
                 DatabaseRow row = new DatabaseRow(reader);
                 List<T> result = new List<T>();
@@ -87,7 +82,18 @@ namespace RichoM.Data
         /// <returns>The result of evaluating <paramref name="function"/>.</returns>
         public T First<T>(Func<DatabaseRow, T> function)
         {
-            return Execute(reader => reader.Read() ? function(new DatabaseRow(reader)) : default(T));
+            return context.ExecuteQuery(this, reader => reader.Read() ? function(new DatabaseRow(reader)) : default(T));
+        }
+
+        /// <summary>
+        /// Executes the query and returns the first column of the first row in the result
+        /// set returned by the query. All other columns and rows are ignored.
+        /// </summary>
+        /// <typeparam name="T">The type of the result.</typeparam>
+        /// <returns>The first column of the first row in the result set.</returns>
+        public T Scalar<T>()
+        {
+            return context.ExecuteScalar<T>(this);
         }
     }
 }

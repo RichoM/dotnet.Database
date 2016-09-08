@@ -162,6 +162,14 @@ namespace DatabaseTest
             Assert.AreEqual(0, db.Query("SELECT count(*) FROM Test").First(row => row.GetInt32(0)));
         }
 
+        [TestMethod]
+        public void TestScalar()
+        {
+            int count = 10;
+            for (int i = 0; i < count; i++) { PerformInsert(Guid.NewGuid()); }
+            Assert.AreEqual(count, db.Query("SELECT count(*) FROM Test").Scalar<int>());
+        }
+
         private int PerformInsert(Guid id, string name = null, DateTime? now = null, int? number = null)
         {
             return db.NonQuery("INSERT INTO Test (id, name, datetime, number)" +

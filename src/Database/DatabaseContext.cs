@@ -44,6 +44,15 @@ namespace RichoM.Data
             });
         }
 
+        internal T ExecuteScalar<T>(DatabaseQuery<TConnection> query)
+        {
+            return CommandDo((cmd) =>
+            {
+                query.ConfigureOn(cmd);
+                return (T)cmd.ExecuteScalar();
+            });
+        }
+
         internal int ExecuteNonQuery(DatabaseNonQuery<TConnection> modification)
         {
             return CommandDo((cmd) =>
