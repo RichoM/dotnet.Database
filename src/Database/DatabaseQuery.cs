@@ -59,7 +59,7 @@ namespace RichoM.Data
         /// <typeparam name="T">The return type of <paramref name="function"/>.</typeparam>
         /// <param name="function">The function to evaluate for each row.</param>
         /// <returns>The results after evaluating the <paramref name="function"/> for each row.</returns>
-        public List<T> Select<T>(Func<DatabaseRow, T> function)
+        public IEnumerable<T> Select<T>(Func<DatabaseRow, T> function)
         {
             return context.ExecuteReader(this, (reader) =>
             {

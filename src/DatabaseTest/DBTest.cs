@@ -41,13 +41,13 @@ namespace DatabaseTest
         [TestMethod]
         public void TestSQLEmptySelect()
         {
-            List<Guid> ids = db.Query("SELECT id FROM Test")
+            IEnumerable<Guid> ids = db.Query("SELECT id FROM Test")
                 .Select(row =>
                 {
                     Assert.Fail();
                     return row.GetGuid(0);
                 });
-            Assert.AreEqual(0, ids.Count);
+            Assert.AreEqual(0, ids.Count());
         }
 
         [TestMethod]
@@ -59,14 +59,15 @@ namespace DatabaseTest
             int number = 42;
             PerformInsert(id, name, now, number);
 
-            List<Tuple<Guid, string, DateTime, int>> rows = db
+            Tuple<Guid, string, DateTime, int>[] rows = db
                 .Query("SELECT id, name, datetime, number FROM Test")
                 .Select(row => new Tuple<Guid, string, DateTime, int>(
                         row.GetGuid(0),
                         row.GetString(1),
                         row.GetDateTime(2),
-                        row.GetInt32(3)));
-            Assert.AreEqual(1, rows.Count);
+                        row.GetInt32(3)))
+                .ToArray();
+            Assert.AreEqual(1, rows.Length);
             Assert.AreEqual(id, rows[0].Item1);
             Assert.AreEqual(name, rows[0].Item2);
             // Datetime precision is not exactly the same in C# and SQL CE
