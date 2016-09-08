@@ -32,7 +32,7 @@ namespace RichoM.Data
             return new DatabaseNonQuery<TConnection>(this, commandText, storedProcedure);
         }
         
-        internal T ExecuteQuery<T>(DatabaseQuery<TConnection> query, Func<DbDataReader, T> function)
+        internal T ExecuteReader<T>(DatabaseQuery<TConnection> query, Func<DbDataReader, T> function)
         {
             return CommandDo((cmd) =>
             {

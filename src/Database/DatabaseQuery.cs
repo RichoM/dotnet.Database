@@ -41,7 +41,7 @@ namespace RichoM.Data
         /// <param name="action">The action to be performed for each database row</param>
         public void ForEach(Action<DatabaseRow> action)
         {
-            context.ExecuteQuery(this, (reader) =>
+            context.ExecuteReader(this, (reader) =>
             {
                 DatabaseRow row = new DatabaseRow(reader);
                 while (reader.Read())
@@ -61,7 +61,7 @@ namespace RichoM.Data
         /// <returns>The results after evaluating the <paramref name="function"/> for each row.</returns>
         public List<T> Select<T>(Func<DatabaseRow, T> function)
         {
-            return context.ExecuteQuery(this, (reader) =>
+            return context.ExecuteReader(this, (reader) =>
             {
                 DatabaseRow row = new DatabaseRow(reader);
                 List<T> result = new List<T>();
@@ -82,7 +82,7 @@ namespace RichoM.Data
         /// <returns>The result of evaluating <paramref name="function"/>.</returns>
         public T First<T>(Func<DatabaseRow, T> function)
         {
-            return context.ExecuteQuery(this, reader => reader.Read() ? function(new DatabaseRow(reader)) : default(T));
+            return context.ExecuteReader(this, reader => reader.Read() ? function(new DatabaseRow(reader)) : default(T));
         }
 
         /// <summary>
