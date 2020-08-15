@@ -30,13 +30,32 @@ namespace RichoM.Data
             }
         }
 
+        /// <summary>
+        /// Actual <c>DbConnection</c> instance.
+        /// 
+        /// IMPORTANT: Do not mess with this object if you don't know what you're doing.
+        /// </summary>
         public TConnection Connection { get { return connection; } }
 
+        /// <summary>
+        /// Actual <c>DbTransaction</c> instance.
+        /// 
+        /// IMPORTANT: Do not mess with this object if you don't know what you're doing.
+        /// </summary>
         public DbTransaction Transaction { get { return transaction; } }
+
+        /// <summary>
+        /// A flag that tells you if this transaction has already been commited/rollbacked.
+        /// If this flag is set, then attempting to operate with this transaction will throw
+        /// a <c>DatabaseTransactionException</c>.
+        /// </summary>
         public bool Completed { get { return completed; } }
 
         /// <summary>
         /// Commits the database transaction.
+        /// 
+        /// IMPORTANT: You do not need to call this method explicitly. Once execution leaves
+        /// the top-level transaction context this method will be called automatically.
         /// </summary>
         public void Commit()
         {
@@ -48,6 +67,9 @@ namespace RichoM.Data
 
         /// <summary>
         /// Rolls back the database transaction.
+        /// 
+        /// IMPORTANT: You do not need to call this method explicitly. If an exception happens
+        /// inside a transaction context, this method will be called automatically.
         /// </summary>
         public void Rollback()
         {
@@ -56,7 +78,6 @@ namespace RichoM.Data
             transaction.Rollback();
             completed = true;
         }
-
 
         internal override T CommandDo<T>(Func<DbCommand, T> function)
         {
@@ -69,6 +90,19 @@ namespace RichoM.Data
             }            
         }
 
+        /// <summary>
+        /// Allows to group multiple commands in a nested transaction. If any of the commands fails with an exception
+        /// the transaction will be rolled back.
+        /// 
+        /// IMPORTANT: Please note that, since SqlConnection does not support nested transactions, this implementation
+        /// will reuse the same top-level <c>DbTransaction</c> for all nested transactions. The commit will only happen
+        /// at the top-level (inner transaction commits will have no effect) and a rollback (at any level) will rollback 
+        /// everything. Although we know it's not ideal, this implementation allows us to use the same interface for both
+        /// <c>DatabaseTransaction</c> and <c>Database</c>.
+        /// 
+        /// </summary>
+        /// <param name="action">A closure whose parameter is the <c>DatabaseTransaction</c> instance
+        /// used as context for the commands.</param>
         public override void TransactionDo(Action<DatabaseTransaction<TConnection>> action)
         {
             Do(action, commit: false);
