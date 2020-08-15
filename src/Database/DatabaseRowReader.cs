@@ -33,6 +33,29 @@ namespace RichoM.Data
         public int GetOrdinal(string name) { return reader.GetOrdinal(name); }
         public int GetValues(object[] values) { return reader.GetValues(values); }
 
+        /// <summary>
+        /// Returns a <c>Dictionary</c> that represents the current row.
+        /// </summary>
+        /// <returns>The <c>Dictionary</c> representing the row.</returns>
+        public Dictionary<string, object> ToDictionary()
+        {
+            return ToDictionary(StringComparer.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Returns a <c>Dictionary</c> that represents the current row allowing to specify the
+        /// StringComparer used to create the <c>Dictionary</c>.
+        /// </summary>
+        /// <returns>The <c>Dictionary</c> representing the row.</returns>
+        public Dictionary<string, object> ToDictionary(StringComparer comparer)
+        {
+            var dictionary = new Dictionary<string, object>(comparer);
+            for (int i = 0; i < FieldCount; i++)
+            {
+                dictionary[GetName(i)] = GetValue(i);
+            }
+            return dictionary;
+        }
 
         // Fields accessed by ordinal
         public bool GetBoolean(int ordinal) { return reader.GetBoolean(ordinal); }
