@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>RichoM.Database</PackageId>
-    <Version>3.0.0</Version>
+    <Version>3.0.1</Version>
     <Authors>Ricardo Moran</Authors>
     <Product>RichoM.Database</Product>
     <Description>Yet another fluent interface for database queries. https://github.com/RichoM/dotnet.Database</Description>
@@ -12,6 +12,14 @@
     <PackageProjectUrl>https://github.com/RichoM/dotnet.Database</PackageProjectUrl>
     <RepositoryUrl>https://github.com/RichoM/dotnet.Database</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>D:\RichoM\dotnet.Database\src\Database\Database.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>D:\RichoM\dotnet.Database\src\Database\Database.xml</DocumentationFile>
   </PropertyGroup>
 
 </Project>

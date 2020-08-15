@@ -1,0 +1,239 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Database</name>
+    </assembly>
+    <members>
+        <member name="T:RichoM.Data.Database`1">
+            <summary>
+            The library's entry point. This class represents the database on which you will execute the commands.
+            </summary>
+            <typeparam name="TConnection">The specific type of <c>DbConnection</c> to use.</typeparam>
+        </member>
+        <member name="M:RichoM.Data.Database`1.#ctor(System.String)">
+            <summary>
+            Creates a <c>Database</c> instance using the <paramref name="connectionString"/>.
+            </summary>
+            <param name="connectionString">The connection string used to connect to the database.</param>
+        </member>
+        <member name="M:RichoM.Data.Database`1.TransactionDo(System.Action{RichoM.Data.DatabaseTransaction{`0}})">
+            <summary>
+            Allows to group multiple commands in a transaction. If any of the commands fails with an exception
+            the transaction will be rolled back.
+            </summary>
+            <param name="action">A closure whose parameter is the <c>DatabaseTransaction</c> instance
+            used as context for the commands.</param>
+        </member>
+        <member name="M:RichoM.Data.Database`1.TransactionDo(System.Action{RichoM.Data.DatabaseTransaction{`0}},System.Data.IsolationLevel)">
+            <summary>
+            Allows to group multiple commands in a transaction. If any of the commands fails with an exception
+            the transaction will be rolled back.
+            </summary>
+            <param name="action">A closure whose parameter is the <c>DatabaseTransaction</c> instance
+            used as context for the commands.</param>
+            <param name="isolationLevel">Optional. Specifies the isolation level for the transaction.</param>
+        </member>
+        <member name="M:RichoM.Data.Database`1.ConnectionDo``1(System.Func{`0,``0})">
+            <summary>
+            Creates a <c>DbConnection</c> and uses it as argument for the <paramref name="function" />.
+            The <c>DbConnection</c> is automatically opened before executing the <paramref name="function" />
+            and closed after it.
+            </summary>
+            <typeparam name="T">The return type of the <paramref name="function" /></typeparam>
+            <param name="function">A function used to perform some actions with the connection</param>
+            <returns>Returns whatever the <paramref name="function" /> returns</returns>
+        </member>
+        <member name="M:RichoM.Data.Database`1.ConnectionDo(System.Action{`0})">
+            <summary>
+            Creates a <c>DbConnection</c> and uses it as argument for the <paramref name="action" />.
+            The <c>DbConnection</c> is automatically opened before executing the <paramref name="action" />
+            and closed after it.
+            </summary>
+            <param name="action">An action used to perform some actions with the connection</param>
+        </member>
+        <member name="M:RichoM.Data.DatabaseContext`1.TransactionDo(System.Action{RichoM.Data.DatabaseTransaction{`0}})">
+            <summary>
+            Allows to group multiple commands in a transaction. If any of the commands fails with an exception
+            the transaction will be rolled back.
+            </summary>
+            <param name="action">A closure whose parameter is the <c>DatabaseTransaction</c> instance
+            used as context for the commands.</param>
+        </member>
+        <member name="M:RichoM.Data.DatabaseContext`1.Query(System.String,System.Boolean)">
+            <summary>
+            Creates a <c>DatabaseQuery</c>.
+            </summary>
+            <param name="commandText">The command text used to configure the query</param>
+            <returns>The newly created <c>DatabaseQuery</c></returns>
+        </member>
+        <member name="M:RichoM.Data.DatabaseContext`1.NonQuery(System.String,System.Boolean)">
+            <summary>
+            Creates a <c>DatabaseNonQuery</c>.
+            </summary>
+            <param name="commandText">The command text used to configure the command</param>
+            <returns>The newly created <c>DatabaseNonQuery</c></returns>
+        </member>
+        <member name="T:RichoM.Data.DatabaseNonQuery`1">
+            <summary>
+            Specific type of <c>DatabaseCommand</c> that is responsible for executing inserts, deletes, updates,
+            and any "non-query" command.
+            </summary>
+            <typeparam name="TConnection"></typeparam>
+        </member>
+        <member name="M:RichoM.Data.DatabaseNonQuery`1.WithParameter(System.String,System.Object,System.Nullable{System.Data.DbType})">
+            <summary>
+            Use this method to specify values for your command's parameters.
+            </summary>
+            <param name="name">Parameter name.</param>
+            <param name="value">Parameter value.</param>
+            <param name="type">Optional. Parameter type.</param>
+            <returns>The current instance so you can keep chaining method calls.</returns>
+        </member>
+        <member name="M:RichoM.Data.DatabaseNonQuery`1.Execute">
+            <summary>
+            Executes the command and returns the number of affected rows.
+            </summary>
+            <returns>The number of affected rows.</returns>
+        </member>
+        <member name="T:RichoM.Data.DatabaseQuery`1">
+            <summary>
+            Specific type of <c>DatabaseCommand</c> that is responsible for executing select queries.
+            </summary>
+            <typeparam name="TConnection"></typeparam>
+        </member>
+        <member name="M:RichoM.Data.DatabaseQuery`1.WithParameter(System.String,System.Object,System.Nullable{System.Data.DbType})">
+            <summary>
+            Use this method to specify values for your command's parameters.
+            </summary>
+            <param name="name">Parameter name.</param>
+            <param name="value">Parameter value.</param>
+            <param name="type">Optional. Parameter type.</param>
+            <returns>The current instance so you can keep chaining method calls.</returns>
+        </member>
+        <member name="M:RichoM.Data.DatabaseQuery`1.ForEach(System.Action{RichoM.Data.DatabaseRowReader})">
+            <summary>
+            Executes the query and lets you iterate over its results.
+            </summary>
+            <param name="action">The action to be performed for each database row</param>
+        </member>
+        <member name="M:RichoM.Data.DatabaseQuery`1.Select``1(System.Func{RichoM.Data.DatabaseRowReader,``0})">
+            <summary>
+            Executes the query and then, for each row, it evaluates <paramref name="function"/> and
+            collects its results.
+            </summary>
+            <typeparam name="T">The return type of <paramref name="function"/>.</typeparam>
+            <param name="function">The function to evaluate for each row.</param>
+            <returns>The results after evaluating the <paramref name="function"/> for each row.</returns>
+        </member>
+        <member name="M:RichoM.Data.DatabaseQuery`1.First``1(System.Func{RichoM.Data.DatabaseRowReader,``0})">
+            <summary>
+            Executes the query and returns the result of evaluating <paramref name="function"/> using 
+            the first row as parameter.
+            </summary>
+            <typeparam name="T">The return type of <paramref name="function"/>.</typeparam>
+            <param name="function">The function to evaluate for the first row.</param>
+            <returns>The result of evaluating <paramref name="function"/>.</returns>
+        </member>
+        <member name="M:RichoM.Data.DatabaseQuery`1.Scalar``1">
+            <summary>
+            Executes the query and returns the first column of the first row in the result
+            set returned by the query. All other columns and rows are ignored.
+            </summary>
+            <typeparam name="T">The type of the result.</typeparam>
+            <returns>The first column of the first row in the result set.</returns>
+        </member>
+        <member name="M:RichoM.Data.DatabaseQuery`1.ToArray">
+            <summary>
+            Executes the query and returns each row in the result set as a <c>Dictionary</c>
+            </summary>
+            <returns>An array with all the rows in the result set converted to instances of <c>Dictionary</c>.</returns>
+        </member>
+        <member name="T:RichoM.Data.DatabaseRowReader">
+            <summary>
+            This class represents a row in a result set. 
+            For performance reasons it is implemented as a wrapper around an instance 
+            of <c>DbDataReader</c>. This means you should never store instances of this
+            class because they are valid only while the <c>DbDataReader</c> is alive.
+            </summary>
+        </member>
+        <member name="M:RichoM.Data.DatabaseRowReader.ToDictionary">
+            <summary>
+            Returns a <c>Dictionary</c> that represents the current row.
+            </summary>
+            <returns>The <c>Dictionary</c> representing the row.</returns>
+        </member>
+        <member name="M:RichoM.Data.DatabaseRowReader.ToDictionary(System.StringComparer)">
+            <summary>
+            Returns a <c>Dictionary</c> that represents the current row allowing to specify the
+            StringComparer used to create the <c>Dictionary</c>.
+            </summary>
+            <returns>The <c>Dictionary</c> representing the row.</returns>
+        </member>
+        <member name="P:RichoM.Data.DatabaseTransaction`1.Connection">
+            <summary>
+            <para>Actual <c>DbConnection</c> instance.</para>
+            
+            <para>IMPORTANT: Do not mess with this object if you don't know what you're doing.</para>
+            </summary>
+        </member>
+        <member name="P:RichoM.Data.DatabaseTransaction`1.Transaction">
+            <summary>
+            <para>Actual <c>DbTransaction</c> instance.</para>
+            
+            <para>IMPORTANT: Do not mess with this object if you don't know what you're doing.</para>
+            </summary>
+        </member>
+        <member name="P:RichoM.Data.DatabaseTransaction`1.Completed">
+            <summary>
+            A flag that tells you if this transaction has already been commited/rollbacked.
+            If this flag is set, then attempting to operate with this transaction will throw
+            a <c>DatabaseTransactionException</c>.
+            </summary>
+        </member>
+        <member name="M:RichoM.Data.DatabaseTransaction`1.Commit">
+            <summary>
+            <para>
+            Commits the database transaction.
+            </para>
+            <para>
+            IMPORTANT: You do not need to call this method explicitly. Once execution leaves
+            the top-level transaction context this method will be called automatically.
+            </para>
+            </summary>
+        </member>
+        <member name="M:RichoM.Data.DatabaseTransaction`1.Rollback">
+            <summary>
+            <para>
+            Rolls back the database transaction.
+            </para>
+            <para>
+            IMPORTANT: You do not need to call this method explicitly. If an exception happens
+            inside a transaction context, this method will be called automatically.
+            </para>
+            </summary>
+        </member>
+        <member name="M:RichoM.Data.DatabaseTransaction`1.TransactionDo(System.Action{RichoM.Data.DatabaseTransaction{`0}})">
+            <summary>
+            <para>
+            Allows to group multiple commands in a nested transaction. If any of the commands fails with an exception
+            the transaction will be rolled back.
+            </para>
+            <para>
+            IMPORTANT: Please note that, since SqlConnection does not support nested transactions, this implementation
+            will reuse the same top-level <c>DbTransaction</c> for all nested transactions. The commit will only happen
+            at the top-level (inner transaction commits will have no effect) and a rollback (at any level) will rollback 
+            everything. Although we know it's not ideal, this implementation allows us to use the same interface for both
+            <c>DatabaseTransaction</c> and <c>Database</c>.
+            </para>
+            </summary>
+            <param name="action">A closure whose parameter is the <c>DatabaseTransaction</c> instance
+            used as context for the commands.</param>
+        </member>
+        <member name="T:Database.DatabaseTransactionException">
+            <summary>
+            An exception that is thrown when trying to execute a command inside a 
+            completed transaction.
+            </summary>
+        </member>
+    </members>
+</doc>
