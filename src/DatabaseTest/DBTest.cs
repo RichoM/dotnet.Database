@@ -3,23 +3,23 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using RichoM.Data;
 using System.Data;
-using System.Data.SqlServerCe;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.SqlClient;
 
 namespace DatabaseTest
 {
     [TestClass]
     public class DBTest
     {
-        private Database<SqlCeConnection> db;
+        private Database<SqlConnection> db;
 
         [TestInitialize]
         public void Setup()
         {
-            db = new Database<SqlCeConnection>(@"Data Source=db.sdf");
+            db = new Database<SqlConnection>(@"Data Source=RICHO-ASUS;Initial Catalog=DbTest;Integrated Security=True");
             try { db.NonQuery("DROP TABLE [Test]").Execute(); }
-            catch (SqlCeException) { /* The table might not exist. Do nothing */ }
+            catch (SqlException) { /* The table might not exist. Do nothing */ }
             db.NonQuery("CREATE TABLE [Test] (" + 
                 " [id] uniqueidentifier NOT NULL," + 
                 " [name] nvarchar(100) NULL," + 
@@ -155,7 +155,7 @@ namespace DatabaseTest
             }
             catch (Exception ex)
             {
-                Assert.IsInstanceOfType(ex, typeof(SqlCeException));
+                Assert.IsInstanceOfType(ex, typeof(SqlException));
                 exceptionThrown = true;
             }
             Assert.IsTrue(exceptionThrown, "The exception has not been thrown");
