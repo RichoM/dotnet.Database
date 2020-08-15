@@ -31,16 +31,16 @@ namespace RichoM.Data
         }
 
         /// <summary>
-        /// Actual <c>DbConnection</c> instance.
+        /// <para>Actual <c>DbConnection</c> instance.</para>
         /// 
-        /// IMPORTANT: Do not mess with this object if you don't know what you're doing.
+        /// <para>IMPORTANT: Do not mess with this object if you don't know what you're doing.</para>
         /// </summary>
         public TConnection Connection { get { return connection; } }
 
         /// <summary>
-        /// Actual <c>DbTransaction</c> instance.
+        /// <para>Actual <c>DbTransaction</c> instance.</para>
         /// 
-        /// IMPORTANT: Do not mess with this object if you don't know what you're doing.
+        /// <para>IMPORTANT: Do not mess with this object if you don't know what you're doing.</para>
         /// </summary>
         public DbTransaction Transaction { get { return transaction; } }
 
@@ -52,10 +52,13 @@ namespace RichoM.Data
         public bool Completed { get { return completed; } }
 
         /// <summary>
+        /// <para>
         /// Commits the database transaction.
-        /// 
+        /// </para>
+        /// <para>
         /// IMPORTANT: You do not need to call this method explicitly. Once execution leaves
         /// the top-level transaction context this method will be called automatically.
+        /// </para>
         /// </summary>
         public void Commit()
         {
@@ -66,10 +69,13 @@ namespace RichoM.Data
         }
 
         /// <summary>
+        /// <para>
         /// Rolls back the database transaction.
-        /// 
+        /// </para>
+        /// <para>
         /// IMPORTANT: You do not need to call this method explicitly. If an exception happens
         /// inside a transaction context, this method will be called automatically.
+        /// </para>
         /// </summary>
         public void Rollback()
         {
@@ -91,15 +97,17 @@ namespace RichoM.Data
         }
 
         /// <summary>
+        /// <para>
         /// Allows to group multiple commands in a nested transaction. If any of the commands fails with an exception
         /// the transaction will be rolled back.
-        /// 
+        /// </para>
+        /// <para>
         /// IMPORTANT: Please note that, since SqlConnection does not support nested transactions, this implementation
         /// will reuse the same top-level <c>DbTransaction</c> for all nested transactions. The commit will only happen
         /// at the top-level (inner transaction commits will have no effect) and a rollback (at any level) will rollback 
         /// everything. Although we know it's not ideal, this implementation allows us to use the same interface for both
         /// <c>DatabaseTransaction</c> and <c>Database</c>.
-        /// 
+        /// </para>
         /// </summary>
         /// <param name="action">A closure whose parameter is the <c>DatabaseTransaction</c> instance
         /// used as context for the commands.</param>
