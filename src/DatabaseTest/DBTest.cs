@@ -6,19 +6,21 @@ using System.Data;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.SqlClient;
+using Database;
 
 namespace DatabaseTest
 {
     [TestClass]
     public class DBTest
     {
-        const string db_name = "DbTest";
+        const string connectionString = "Data Source=RICHO-ASUS;Initial Catalog=DbTest;Integrated Security=True";
+
         private Database<SqlConnection> db;
 
         [TestInitialize]
         public void Setup()
         {
-            db = new Database<SqlConnection>($"Data Source=RICHO-ASUS;Initial Catalog={db_name};Integrated Security=True");
+            db = new Database<SqlConnection>(connectionString);
             try { db.NonQuery("DROP TABLE [Test]").Execute(); }
             catch (SqlException) { /* The table might not exist. Do nothing */ }
             db.NonQuery("CREATE TABLE [Test] (" + 
@@ -276,6 +278,365 @@ namespace DatabaseTest
             // Datetime precision is not exactly the same in C# and SQL server
             Assert.AreEqual(now.ToString(), rows[0].datetime.ToString());
             Assert.AreEqual(number, rows[0].number);
+        }
+
+        [TestMethod]
+        public void TestNestedTransactionsAreNotSupportedInADONET()
+        {
+            PerformInsert(Guid.NewGuid(), "Ricardo");
+            PerformInsert(Guid.NewGuid(), "Diego");
+            PerformInsert(Guid.NewGuid(), "Sofía");
+
+            using (var conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                var outerTran = conn.BeginTransaction();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.Transaction = outerTran;
+                    cmd.CommandText = "UPDATE Test SET name = @new_name WHERE name = @old_name";
+                    cmd.Parameters.AddWithValue("@old_name", "Ricardo");
+                    cmd.Parameters.AddWithValue("@new_name", "Richo");
+                    var rows = cmd.ExecuteNonQuery();
+                    Assert.AreEqual(1, rows);
+                }
+
+                // SqlConnection doesn't support parallel transactions!
+                Assert.ThrowsException<InvalidOperationException>(() =>
+                {
+                    var innerTran = conn.BeginTransaction();
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.Transaction = innerTran;
+                        cmd.CommandText = "DELETE FROM Test WHERE name = @name";
+                        cmd.Parameters.AddWithValue("@name", "Richo");
+                        var rows = cmd.ExecuteNonQuery();
+                        Assert.AreEqual(1, rows);
+                    }
+                    innerTran.Commit();
+                });
+
+                outerTran.Commit();
+            }
+        }
+
+        [TestMethod]
+        public void TestNestedTransactions()
+        {
+            PerformInsert(Guid.NewGuid(), "Ricardo");
+            PerformInsert(Guid.NewGuid(), "Diego");
+            PerformInsert(Guid.NewGuid(), "Sofía");
+
+            db.TransactionDo(outerTran =>
+            {
+                var rows = outerTran
+                    .NonQuery("UPDATE Test SET name = @new_name WHERE name = @old_name")
+                    .WithParameter("@old_name", "Ricardo")
+                    .WithParameter("@new_name", "Richo")
+                    .Execute();
+                Assert.AreEqual(1, rows);
+
+                outerTran.TransactionDo(innerTran =>
+                {
+                    var rows = innerTran
+                        .NonQuery("DELETE FROM Test WHERE name = @name")
+                        .WithParameter("@name", "Richo")
+                        .Execute();
+                    Assert.AreEqual(1, rows);
+                });
+            });
+
+            Assert.AreEqual(2, db.Query("SELECT count(*) FROM Test").Scalar<int>());
+        }
+
+        [TestMethod]
+        public void TestNestedTransactionsOuterRollback()
+        {
+            PerformInsert(Guid.NewGuid(), "Ricardo");
+            PerformInsert(Guid.NewGuid(), "Diego");
+            PerformInsert(Guid.NewGuid(), "Sofía");
+            try
+            {
+                db.TransactionDo(outerTran =>
+                {
+                    var rows = outerTran
+                        .NonQuery("UPDATE Test SET name = @new_name WHERE name = @old_name")
+                        .WithParameter("@old_name", "Ricardo")
+                        .WithParameter("@new_name", "Richo")
+                        .Execute();
+                    Assert.AreEqual(1, rows);
+
+                    outerTran.TransactionDo(innerTran =>
+                    {
+                        var rows = innerTran
+                            .NonQuery("DELETE FROM Test WHERE name = @name")
+                            .WithParameter("@name", "Richo")
+                            .Execute();
+                        Assert.AreEqual(1, rows);
+                    });
+
+                    // This should rollback everything
+                    throw new Exception("ROLLBACK!");
+                });
+            }
+            catch (Exception ex)
+            {
+                Assert.AreEqual("ROLLBACK!", ex.Message);
+            }
+
+            Assert.AreEqual(3, db.Query("SELECT count(*) FROM Test").Scalar<int>());
+        }
+
+        [TestMethod]
+        public void TestNestedTransactionsInnerRollback()
+        {
+            PerformInsert(Guid.NewGuid(), "Ricardo");
+            PerformInsert(Guid.NewGuid(), "Diego");
+            PerformInsert(Guid.NewGuid(), "Sofía");
+            try
+            {
+                db.TransactionDo(outerTran =>
+                {
+                    var rows = outerTran
+                        .NonQuery("UPDATE Test SET name = @new_name WHERE name = @old_name")
+                        .WithParameter("@old_name", "Ricardo")
+                        .WithParameter("@new_name", "Richo")
+                        .Execute();
+                    Assert.AreEqual(1, rows);
+
+                    outerTran.TransactionDo(innerTran =>
+                    {
+                        var rows = innerTran
+                            .NonQuery("DELETE FROM Test WHERE name = @name")
+                            .WithParameter("@name", "Richo")
+                            .Execute();
+                        Assert.AreEqual(1, rows);
+
+                        // This should rollback everything
+                        throw new Exception("ROLLBACK!");
+                    });
+                });
+            }
+            catch (Exception ex)
+            {
+                Assert.AreEqual("ROLLBACK!", ex.Message);
+            }
+
+            Assert.AreEqual(3, db.Query("SELECT count(*) FROM Test").Scalar<int>());
+        }
+
+        [TestMethod]
+        public void TestNestedTransactionsOuterExplicitCommit()
+        {
+            PerformInsert(Guid.NewGuid(), "Ricardo");
+            PerformInsert(Guid.NewGuid(), "Diego");
+            PerformInsert(Guid.NewGuid(), "Sofía");
+
+            db.TransactionDo(outerTran =>
+            {
+                var rows = outerTran
+                    .NonQuery("UPDATE Test SET name = @new_name WHERE name = @old_name")
+                    .WithParameter("@old_name", "Ricardo")
+                    .WithParameter("@new_name", "Richo")
+                    .Execute();
+                Assert.AreEqual(1, rows);
+
+                outerTran.TransactionDo(innerTran =>
+                {
+                    var rows = innerTran
+                        .NonQuery("DELETE FROM Test WHERE name = @name")
+                        .WithParameter("@name", "Richo")
+                        .Execute();
+                    Assert.AreEqual(1, rows);
+                });
+
+                outerTran.Commit();
+            });
+
+            Assert.AreEqual(2, db.Query("SELECT count(*) FROM Test").Scalar<int>());
+        }
+
+        [TestMethod]
+        public void TestNestedTransactionsInnerExplicitCommit()
+        {
+            PerformInsert(Guid.NewGuid(), "Ricardo");
+            PerformInsert(Guid.NewGuid(), "Diego");
+            PerformInsert(Guid.NewGuid(), "Sofía");
+
+            db.TransactionDo(outerTran =>
+            {
+                var rows = outerTran
+                    .NonQuery("UPDATE Test SET name = @new_name WHERE name = @old_name")
+                    .WithParameter("@old_name", "Ricardo")
+                    .WithParameter("@new_name", "Richo")
+                    .Execute();
+                Assert.AreEqual(1, rows);
+
+                outerTran.TransactionDo(innerTran =>
+                {
+                    var rows = innerTran
+                        .NonQuery("DELETE FROM Test WHERE name = @name")
+                        .WithParameter("@name", "Richo")
+                        .Execute();
+                    Assert.AreEqual(1, rows);
+                    
+                    innerTran.Commit();
+                });
+
+            });
+
+            Assert.AreEqual(2, db.Query("SELECT count(*) FROM Test").Scalar<int>());
+        }
+
+        [TestMethod]
+        public void TestNestedTransactionsOuterExplicitRollback()
+        {
+            PerformInsert(Guid.NewGuid(), "Ricardo");
+            PerformInsert(Guid.NewGuid(), "Diego");
+            PerformInsert(Guid.NewGuid(), "Sofía");
+
+            db.TransactionDo(outerTran =>
+            {
+                var rows = outerTran
+                    .NonQuery("UPDATE Test SET name = @new_name WHERE name = @old_name")
+                    .WithParameter("@old_name", "Ricardo")
+                    .WithParameter("@new_name", "Richo")
+                    .Execute();
+                Assert.AreEqual(1, rows);
+
+                outerTran.TransactionDo(innerTran =>
+                {
+                    var rows = innerTran
+                        .NonQuery("DELETE FROM Test WHERE name = @name")
+                        .WithParameter("@name", "Richo")
+                        .Execute();
+                    Assert.AreEqual(1, rows);
+                });
+
+                outerTran.Rollback();
+            });
+
+            Assert.AreEqual(3, db.Query("SELECT count(*) FROM Test").Scalar<int>());
+        }
+
+        [TestMethod]
+        public void TestNestedTransactionsInnerExplicitRollback()
+        {
+            PerformInsert(Guid.NewGuid(), "Ricardo");
+            PerformInsert(Guid.NewGuid(), "Diego");
+            PerformInsert(Guid.NewGuid(), "Sofía");
+
+            db.TransactionDo(outerTran =>
+            {
+                var rows = outerTran
+                    .NonQuery("UPDATE Test SET name = @new_name WHERE name = @old_name")
+                    .WithParameter("@old_name", "Ricardo")
+                    .WithParameter("@new_name", "Richo")
+                    .Execute();
+                Assert.AreEqual(1, rows);
+
+                outerTran.TransactionDo(innerTran =>
+                {
+                    var rows = innerTran
+                        .NonQuery("DELETE FROM Test WHERE name = @name")
+                        .WithParameter("@name", "Richo")
+                        .Execute();
+                    Assert.AreEqual(1, rows);
+
+                    innerTran.Rollback();
+                });
+
+            });
+
+            Assert.AreEqual(3, db.Query("SELECT count(*) FROM Test").Scalar<int>());
+        }
+
+        [TestMethod]
+        public void TestNestedTransactionsCompletedException()
+        {
+            PerformInsert(Guid.NewGuid(), "Ricardo");
+            PerformInsert(Guid.NewGuid(), "Diego");
+            PerformInsert(Guid.NewGuid(), "Sofía");
+
+            try
+            {
+                db.TransactionDo(outerTran =>
+                {
+                    var rows = outerTran
+                        .NonQuery("UPDATE Test SET name = @new_name WHERE name = @old_name")
+                        .WithParameter("@old_name", "Ricardo")
+                        .WithParameter("@new_name", "Richo")
+                        .Execute();
+                    Assert.AreEqual(1, rows);
+
+                    outerTran.TransactionDo(innerTran =>
+                    {
+                        var rows = innerTran
+                            .NonQuery("DELETE FROM Test WHERE name = @name")
+                            .WithParameter("@name", "Richo")
+                            .Execute();
+                        Assert.AreEqual(1, rows);
+
+                        innerTran.Commit();
+                    });
+
+                    // The transaction has been commited, this should fail
+                    Assert.AreEqual(2, outerTran.Query("SELECT count(*) FROM Test").Scalar<int>());
+                    Assert.Fail("Execution should not reach here");
+                });
+                Assert.Fail("Execution should not reach here");
+            }
+            catch (Exception ex)
+            {
+                Assert.IsInstanceOfType(ex, typeof(DatabaseTransactionException));
+            }
+
+            Assert.AreEqual(2, db.Query("SELECT count(*) FROM Test").Scalar<int>());
+        }
+
+
+        [TestMethod]
+        public void TestNestedTransactionsRollbackAfterCommit()
+        {
+            PerformInsert(Guid.NewGuid(), "Ricardo");
+            PerformInsert(Guid.NewGuid(), "Diego");
+            PerformInsert(Guid.NewGuid(), "Sofía");
+
+            try
+            {
+                db.TransactionDo(outerTran =>
+                {
+                    var rows = outerTran
+                        .NonQuery("UPDATE Test SET name = @new_name WHERE name = @old_name")
+                        .WithParameter("@old_name", "Ricardo")
+                        .WithParameter("@new_name", "Richo")
+                        .Execute();
+                    Assert.AreEqual(1, rows);
+
+                    outerTran.TransactionDo(innerTran =>
+                    {
+                        var rows = innerTran
+                            .NonQuery("DELETE FROM Test WHERE name = @name")
+                            .WithParameter("@name", "Richo")
+                            .Execute();
+                        Assert.AreEqual(1, rows);
+
+                        innerTran.Commit();
+                    });
+
+                    // The transaction has been commited, this should fail
+                    outerTran.Rollback();
+                    Assert.Fail("Execution should not reach here");
+                });
+                Assert.Fail("Execution should not reach here");
+            }
+            catch (Exception ex)
+            {
+                Assert.IsInstanceOfType(ex, typeof(DatabaseTransactionException));
+            }
+
+            Assert.AreEqual(2, db.Query("SELECT count(*) FROM Test").Scalar<int>());
         }
     }
 }
