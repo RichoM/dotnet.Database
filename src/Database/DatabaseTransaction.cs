@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using System.Data;
 using System.Data.Common;
+using Database;
 
 namespace RichoM.Data
 {
@@ -13,6 +14,7 @@ namespace RichoM.Data
     {
         private TConnection connection;
         private DbTransaction transaction;
+        private bool completed;
 
         internal DatabaseTransaction(TConnection connection, IsolationLevel? isolationLevel)
         {
@@ -30,8 +32,36 @@ namespace RichoM.Data
 
         public TConnection Connection { get { return connection; } }
 
+        public DbTransaction Transaction { get { return transaction; } }
+        public bool Completed { get { return completed; } }
+
+        /// <summary>
+        /// Commits the database transaction.
+        /// </summary>
+        public void Commit()
+        {
+            if (completed) { throw new DatabaseTransactionException(); }
+
+            transaction.Commit();
+            completed = true;
+        }
+
+        /// <summary>
+        /// Rolls back the database transaction.
+        /// </summary>
+        public void Rollback()
+        {
+            if (completed) { throw new DatabaseTransactionException(); }
+
+            transaction.Rollback();
+            completed = true;
+        }
+
+
         internal override T CommandDo<T>(Func<DbCommand, T> function)
         {
+            if (completed) { throw new DatabaseTransactionException(); }
+
             using (DbCommand cmd = connection.CreateCommand())
             {
                 cmd.Transaction = transaction;
@@ -39,21 +69,35 @@ namespace RichoM.Data
             }            
         }
 
-        internal void Do(Action<DatabaseTransaction<TConnection>> action)
+        public override void TransactionDo(Action<DatabaseTransaction<TConnection>> action)
+        {
+            Do(action, commit: false);
+        }
+
+        internal void Do(Action<DatabaseTransaction<TConnection>> action, bool commit = true)
         {
             try
             {
                 action(this);
-                transaction.Commit();
+                if (commit && !completed)
+                {
+                    Commit();
+                }
             }
-            catch (Exception)
+            catch
             {
-                transaction.Rollback();
+                if (!completed)
+                {
+                    Rollback();
+                }
                 throw;
             }
             finally
             {
-                transaction.Dispose();
+                if (commit || completed)
+                {
+                    transaction.Dispose();
+                }
             }
         }
     }
