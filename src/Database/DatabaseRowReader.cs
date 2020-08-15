@@ -11,11 +11,17 @@ using System.Data.Common;
 
 namespace RichoM.Data
 {
-    public class DatabaseRow
+    /// <summary>
+    /// This class represents a row in a result set. 
+    /// For performance reasons it is implemented as a wrapper around an instance 
+    /// of <c>DbDataReader</c>. This means you should never store instances of this
+    /// class because they are valid only while the <c>DbDataReader</c> is alive.
+    /// </summary>
+    public class DatabaseRowReader
     {
         private DbDataReader reader;
 
-        internal DatabaseRow(DbDataReader reader)
+        internal DatabaseRowReader(DbDataReader reader)
         {
             this.reader = reader;
         }
@@ -26,6 +32,7 @@ namespace RichoM.Data
         public string GetName(int index) { return reader.GetName(index); }
         public int GetOrdinal(string name) { return reader.GetOrdinal(name); }
         public int GetValues(object[] values) { return reader.GetValues(values); }
+
 
         // Fields accessed by ordinal
         public bool GetBoolean(int ordinal) { return reader.GetBoolean(ordinal); }

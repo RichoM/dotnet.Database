@@ -39,11 +39,11 @@ namespace RichoM.Data
         /// Executes the query and lets you iterate over its results.
         /// </summary>
         /// <param name="action">The action to be performed for each database row</param>
-        public void ForEach(Action<DatabaseRow> action)
+        public void ForEach(Action<DatabaseRowReader> action)
         {
             context.ExecuteReader(this, (reader) =>
             {
-                DatabaseRow row = new DatabaseRow(reader);
+                DatabaseRowReader row = new DatabaseRowReader(reader);
                 while (reader.Read())
                 {
                     action(row);
@@ -59,11 +59,11 @@ namespace RichoM.Data
         /// <typeparam name="T">The return type of <paramref name="function"/>.</typeparam>
         /// <param name="function">The function to evaluate for each row.</param>
         /// <returns>The results after evaluating the <paramref name="function"/> for each row.</returns>
-        public IEnumerable<T> Select<T>(Func<DatabaseRow, T> function)
+        public IEnumerable<T> Select<T>(Func<DatabaseRowReader, T> function)
         {
             return context.ExecuteReader(this, (reader) =>
             {
-                DatabaseRow row = new DatabaseRow(reader);
+                DatabaseRowReader row = new DatabaseRowReader(reader);
                 List<T> result = new List<T>();
                 while (reader.Read())
                 {
@@ -80,9 +80,9 @@ namespace RichoM.Data
         /// <typeparam name="T">The return type of <paramref name="function"/>.</typeparam>
         /// <param name="function">The function to evaluate for the first row.</param>
         /// <returns>The result of evaluating <paramref name="function"/>.</returns>
-        public T First<T>(Func<DatabaseRow, T> function)
+        public T First<T>(Func<DatabaseRowReader, T> function)
         {
-            return context.ExecuteReader(this, reader => reader.Read() ? function(new DatabaseRow(reader)) : default(T));
+            return context.ExecuteReader(this, reader => reader.Read() ? function(new DatabaseRowReader(reader)) : default(T));
         }
 
         /// <summary>
