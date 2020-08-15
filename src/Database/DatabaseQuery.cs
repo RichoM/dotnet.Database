@@ -95,5 +95,14 @@ namespace RichoM.Data
         {
             return context.ExecuteScalar<T>(this);
         }
+
+        /// <summary>
+        /// Executes the query and returns each row in the result set as a <c>Dictionary</c>
+        /// </summary>
+        /// <returns>An array with all the rows in the result set converted to instances of <c>Dictionary</c>.</returns>
+        public Dictionary<string, object>[] ToArray()
+        {
+            return Select(row => row.ToDictionary()).ToArray();
+        }
     }
 }
