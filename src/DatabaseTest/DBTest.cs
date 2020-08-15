@@ -54,10 +54,10 @@ namespace DatabaseTest
         [TestMethod]
         public void TestSQLEmptySelect()
         {
-            IEnumerable<Guid> ids = db.Query("SELECT id FROM Test")
+            var ids = db.Query("SELECT id FROM Test")
                 .Select(row =>
                 {
-                    Assert.Fail();
+                    Assert.Fail(); // This code should not be executed
                     return row.GetGuid(0);
                 });
             Assert.AreEqual(0, ids.Count());
@@ -72,7 +72,7 @@ namespace DatabaseTest
             int number = 42;
             PerformInsert(id, name, now, number);
 
-            Tuple<Guid, string, DateTime, int>[] rows = db
+            var rows = db
                 .Query("SELECT id, name, datetime, number FROM Test")
                 .Select(row => new Tuple<Guid, string, DateTime, int>(
                         row.GetGuid(0),
@@ -83,7 +83,7 @@ namespace DatabaseTest
             Assert.AreEqual(1, rows.Length);
             Assert.AreEqual(id, rows[0].Item1);
             Assert.AreEqual(name, rows[0].Item2);
-            // Datetime precision is not exactly the same in C# and SQL CE
+            // Datetime precision is not exactly the same in C# and SQL server
             Assert.AreEqual(now.ToString(), rows[0].Item3.ToString());
             Assert.AreEqual(number, rows[0].Item4);
         }
@@ -129,7 +129,7 @@ namespace DatabaseTest
             string[] expected = new string[] { "Ricardo", "Diego", "Sofía" };
             foreach (string name in expected) { PerformInsert(Guid.NewGuid(), name); }
 
-            IEnumerable<string> names = db.Query("SELECT name FROM Test ORDER BY name ASC")
+            var names = db.Query("SELECT name FROM Test ORDER BY name ASC")
                 .Select(row => row.GetString("name"));
 
             Assert.IsTrue(expected.OrderBy(each => each).SequenceEqual(names));
@@ -182,6 +182,100 @@ namespace DatabaseTest
             int count = 10;
             for (int i = 0; i < count; i++) { PerformInsert(Guid.NewGuid()); }
             Assert.AreEqual(count, db.Query("SELECT count(*) FROM Test").Scalar<int>());
+        }
+
+        [TestMethod]
+        public void TestRowToDictionary()
+        {
+            Guid id = Guid.NewGuid();
+            string name = "Richo!";
+            DateTime now = DateTime.Now;
+            int number = 42;
+            PerformInsert(id, name, now, number);
+
+            var rows = db
+                .Query("SELECT id, name, datetime, number FROM Test")
+                .Select(row => row.ToDictionary())
+                .ToArray();
+            Assert.AreEqual(1, rows.Length);
+            Assert.AreEqual(id, rows[0]["id"]);
+            Assert.AreEqual(name, rows[0]["name"]);
+            // Datetime precision is not exactly the same in C# and SQL server
+            Assert.AreEqual(now.ToString(), rows[0]["datetime"].ToString());
+            Assert.AreEqual(number, rows[0]["number"]);
+        }
+
+        [TestMethod]
+        public void TestQueryToArray()
+        {
+            Guid id = Guid.NewGuid();
+            string name = "Richo!";
+            DateTime now = DateTime.Now;
+            int number = 42;
+            PerformInsert(id, name, now, number);
+
+            var rows = db.Query("SELECT id, name, datetime, number FROM Test").ToArray();
+
+            Assert.AreEqual(1, rows.Length);
+            Assert.AreEqual(id, rows[0]["id"]);
+            Assert.AreEqual(name, rows[0]["name"]);
+            // Datetime precision is not exactly the same in C# and SQL server
+            Assert.AreEqual(now.ToString(), rows[0]["datetime"].ToString());
+            Assert.AreEqual(number, rows[0]["number"]);
+        }
+
+
+        [TestMethod]
+        public void TestRowToValueTuple()
+        {
+            Guid id = Guid.NewGuid();
+            string name = "Richo!";
+            DateTime now = DateTime.Now;
+            int number = 42;
+            PerformInsert(id, name, now, number);
+
+            var rows = db
+                .Query("SELECT id, name, datetime, number FROM Test")
+                .Select(row => (id: row.GetGuid(0),
+                                name: row.GetString(1),
+                                datetime: row.GetDateTime(2),
+                                number: row.GetInt32(3)))
+                .ToArray();
+
+            Assert.AreEqual(1, rows.Length);
+            Assert.AreEqual(id, rows[0].id);
+            Assert.AreEqual(name, rows[0].name);
+            // Datetime precision is not exactly the same in C# and SQL server
+            Assert.AreEqual(now.ToString(), rows[0].datetime.ToString());
+            Assert.AreEqual(number, rows[0].number);
+        }
+
+        [TestMethod]
+        public void TestRowToAnonObject()
+        {
+            Guid id = Guid.NewGuid();
+            string name = "Richo!";
+            DateTime now = DateTime.Now;
+            int number = 42;
+            PerformInsert(id, name, now, number);
+
+            var rows = db
+                .Query("SELECT id, name, datetime, number FROM Test")
+                .Select(row => new
+                {
+                    id = row.GetGuid(0),
+                    name = row.GetString(1),
+                    datetime = row.GetDateTime(2),
+                    number = row.GetInt32(3)
+                })
+                .ToArray();
+
+            Assert.AreEqual(1, rows.Length);
+            Assert.AreEqual(id, rows[0].id);
+            Assert.AreEqual(name, rows[0].name);
+            // Datetime precision is not exactly the same in C# and SQL server
+            Assert.AreEqual(now.ToString(), rows[0].datetime.ToString());
+            Assert.AreEqual(number, rows[0].number);
         }
     }
 }
